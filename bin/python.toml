@@ -1,0 +1,4 @@
+executable = "python"
+schema = "avalon-core:application-1.0"
+label = "Python"
+application_dir = "python"
