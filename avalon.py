@@ -40,8 +40,7 @@ REPO_DIR = os.path.normpath(os.path.dirname(__file__))
 
 def install():
     missing_dependencies = list()
-    for dependency in ("PyQt5",
-                       "pymongo"):
+    for dependency in ("PyQt5",):
         try:
             __import__(dependency)
         except ImportError:
@@ -52,7 +51,7 @@ def install():
         print("\n".join(" - %s" % d for d in missing_dependencies))
         print("\nSee https://getavalon.github.io/2.0/howto/#install "
               "for details.")
-        return 1
+        sys.exit(1)
 
     # Enable overriding from local environment
     for dependency, name in (("PYBLISH_BASE", "pyblish-base"),
@@ -105,7 +104,7 @@ def install():
 
     if subprocess.call([sys.executable, "-c", "import %s" % config]) != 0:
         print("ERROR: config not found, check your PYTHONPATH.")
-        return 1
+        sys.exit(1)
 
 
 def forward(args, silent=False):
@@ -139,7 +138,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build", action="store_true",
+    parser.add_argument("--build", default=os.getcwd(),
                         help="Build project at the current working directory")
     parser.add_argument("--load", action="store_true",
                         help="Load project at the current working directory")
