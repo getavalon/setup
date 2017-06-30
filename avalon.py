@@ -108,11 +108,18 @@ def install():
         return 1
 
 
-def show():
-    print("Environment ready")
-    root = os.environ["AVALON_PROJECTS"]
+def forward(args, silent=False):
+    """Pass `args` to the Avalon CLI, within the Avalon Setup environment
+
+    Arguments:
+        args (list): Command-line arguments to run
+            within the active environment
+
+    """
+
+    print("avalon.py: Forwarding %s.." % " ".join(args))
     popen = subprocess.Popen(
-        [sys.executable, "-u", "-m", "launcher", "--root", root],
+        [sys.executable, "-u", "-m"] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True
@@ -120,26 +127,8 @@ def show():
 
     # Blocks until finished
     for line in iter(popen.stdout.readline, ""):
-        sys.stdout.write(line)
-
-    print("Shutting down..")
-    popen.wait()
-
-    print("Good bye")
-
-
-def build():
-    print("avalon.py: Building..")
-    popen = subprocess.Popen(
-        [sys.executable, "-u", "-m", "avalon.build"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True
-    )
-
-    # Blocks until finished
-    for line in iter(popen.stdout.readline, ""):
-        sys.stdout.write(line)
+        if not silent:
+            sys.stdout.write(line)
 
     print("avalon.py: Finishing up..")
     popen.wait()
@@ -150,14 +139,26 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build", action="store_true")
-    parser.add_argument("--show", action="store_true")
+    parser.add_argument("--build", action="store_true",
+                        help="Build project at the current working directory")
+    parser.add_argument("--load", action="store_true",
+                        help="Load project at the current working directory")
+    parser.add_argument("--save", action="store_true",
+                        help="Save project from the current working directory")
+    parser.add_argument("--show", action="store_true",
+                        help="Show the Avalon Launcher")
 
     kwargs = parser.parse_args()
 
     install()
 
     if kwargs.build:
-        sys.exit(build())
+        sys.exit(forward(["avalon.build"]))
+    elif kwargs.load:
+        sys.exit(forward(["avalon.inventory", "--load"]))
+    elif kwargs.save:
+        sys.exit(forward(["avalon.inventory", "--save"]))
     else:
-        sys.exit(show())
+        root = os.environ["AVALON_PROJECTS"]
+        sys.exit(forward(["avalon.inventory", "--save"], silent=True))
+        sys.exit(forward(["launcher", "--root", root]))
