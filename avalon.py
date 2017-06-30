@@ -10,7 +10,6 @@ is available in this distribution of Avalon.
 Dependencies:
     - Python 2/3
     - PyQt5
-    - PyMongo
 
 Usage:
     $ ./avalon.py
@@ -138,7 +137,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build", default=os.getcwd(),
+    parser.add_argument("--build", action="store_true",
                         help="Build project at the current working directory")
     parser.add_argument("--load", action="store_true",
                         help="Load project at the current working directory")
