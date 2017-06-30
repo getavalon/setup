@@ -1,1 +1,1 @@
-python -u %~dp0avalon.py
+python -u %~dp0avalon.py %*

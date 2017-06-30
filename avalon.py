@@ -151,12 +151,12 @@ if __name__ == '__main__':
     install()
 
     if kwargs.build:
-        sys.exit(forward(["avalon.build"]))
+        if forward(["avalon.inventory", "--save"], silent=True) == 0:
+            sys.exit(forward(["avalon.build"]))
     elif kwargs.load:
         sys.exit(forward(["avalon.inventory", "--load"]))
     elif kwargs.save:
         sys.exit(forward(["avalon.inventory", "--save"]))
     else:
         root = os.environ["AVALON_PROJECTS"]
-        sys.exit(forward(["avalon.inventory", "--save"], silent=True))
         sys.exit(forward(["launcher", "--root", root]))
