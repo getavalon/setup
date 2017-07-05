@@ -49,8 +49,19 @@ def install():
     if missing_dependencies:
         print("Sorry, there are some dependencies missing from your system.\n")
         print("\n".join(" - %s" % d for d in missing_dependencies))
+
+    missing_environment = list()
+    for variable in ("AVALON_MONGO",):
+        if variable not in os.environ:
+            missing_environment.append(variable)
+
+    if missing_environment:
+        print("Don't forget to set the required environment variables.")
+        print("\n".join("- %s" % v for v in missing_environment))
+
+    if missing_dependencies or missing_environment:
         print("\nSee https://getavalon.github.io/2.0/howto/#install "
-              "for details.")
+              "for more details.")
         sys.exit(1)
 
     # Enable overriding from local environment
@@ -154,10 +165,6 @@ if __name__ == '__main__':
     kwargs = parser.parse_args()
 
     install()
-
-    if "AVALON_MONGO" not in os.environ:
-        prefix = "mongodb://"
-        os.environ["AVALON_MONGO"] = prefix + input(prefix)
 
     if kwargs.build:
         if forward(["avalon.inventory", "--save"], silent=True) == 0:
