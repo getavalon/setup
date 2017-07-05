@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """Avalon entrypoint
 
 This establishes an environment relative to what
@@ -22,10 +20,17 @@ Overrides:
     Set any of the below to override which path to put
     on your PYTHONPATH
 
-    - PYBLISH_BASE
-    - PYBLISH_QML
-    - AVALON_CORE
-    - AVALON_LAUNCHER
+    # Database
+    - AVALON_MONGO=mongodb://username:pass@address:port
+
+    # Dependencies
+    - PYBLISH_BASE=absolute/path
+    - PYBLISH_QML=absolute/path
+    - AVALON_CORE=absolute/path
+    - AVALON_LAUNCHER=absolute/path
+
+    # Enable additional output
+    - AVALON_DEBUG=True
 
 """
 
@@ -179,6 +184,9 @@ if __name__ == '__main__':
     elif kwargs.save:
         sys.exit(forward(["avalon.inventory", "--save"]))
 
-    else:
+    elif kwargs.show:
         root = os.environ["AVALON_PROJECTS"]
         sys.exit(forward(["launcher", "--root", root]))
+
+    else:
+        print(__doc__)
