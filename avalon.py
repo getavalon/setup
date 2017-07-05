@@ -35,6 +35,7 @@ import platform
 import subprocess
 
 REPO_DIR = os.path.normpath(os.path.dirname(__file__))
+AVALON_DEBUG = bool(os.getenv("AVALON_DEBUG"))
 
 
 def install():
@@ -115,7 +116,9 @@ def forward(args, silent=False):
 
     """
 
-    print("avalon.py: Forwarding %s.." % " ".join(args))
+    if AVALON_DEBUG:
+        print("avalon.py: Forwarding %s.." % " ".join(args))
+
     popen = subprocess.Popen(
         [sys.executable, "-u", "-m"] + args,
         stdout=subprocess.PIPE,
@@ -128,7 +131,9 @@ def forward(args, silent=False):
         if not silent:
             sys.stdout.write(line)
 
-    print("avalon.py: Finishing up..")
+    if AVALON_DEBUG:
+        print("avalon.py: Finishing up..")
+
     popen.wait()
     return popen.returncode
 
@@ -150,13 +155,23 @@ if __name__ == '__main__':
 
     install()
 
+    if "AVALON_MONGO" not in os.environ:
+        prefix = "mongodb://"
+        os.environ["AVALON_MONGO"] = prefix + input(prefix)
+
     if kwargs.build:
         if forward(["avalon.inventory", "--save"], silent=True) == 0:
             sys.exit(forward(["avalon.build"]))
+        else:
+            print("Couldn't save, this is a bug")
+            sys.exit(1)
+
     elif kwargs.load:
         sys.exit(forward(["avalon.inventory", "--load"]))
+
     elif kwargs.save:
         sys.exit(forward(["avalon.inventory", "--save"]))
+
     else:
         root = os.environ["AVALON_PROJECTS"]
         sys.exit(forward(["launcher", "--root", root]))
