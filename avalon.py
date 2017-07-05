@@ -39,7 +39,7 @@ import sys
 import platform
 import subprocess
 
-REPO_DIR = os.path.normpath(os.path.dirname(__file__))
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 AVALON_DEBUG = bool(os.getenv("AVALON_DEBUG"))
 
 
