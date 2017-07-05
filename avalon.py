@@ -172,6 +172,9 @@ if __name__ == '__main__':
     install()
 
     if kwargs.build:
+        # Build bundled project
+        os.chdir(os.path.join(os.environ["AVALON_PROJECTS"], "batman"))
+
         if forward(["avalon.inventory", "--save"], silent=True) == 0:
             sys.exit(forward(["avalon.build"]))
         else:
