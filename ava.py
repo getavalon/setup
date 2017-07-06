@@ -1,18 +1,18 @@
-"""Avalon entrypoint
+"""Avalon Command-line Interface
 
-This establishes an environment relative to what
-is available in this distribution of Avalon.
+This module contains a CLI towards Avalon and all of what
+is bundled together in this distribution.
 
 - https://github.com/getavalon/setup
 
-Dependencies:
-    - Python 2/3
+dependencies:
+    - Python 2.6+ or 3.6+
     - PyQt5
 
-Usage:
-    $ ./avalon.py
+example:
+    $ python ava.py --help
 
-Overrides:
+overrides:
     avalon.py takes into account dependencies bundled
     together with this distribution, but these can be
     overridden via environment variables.
@@ -21,13 +21,15 @@ Overrides:
     on your PYTHONPATH
 
     # Database
-    - AVALON_MONGO=mongodb://username:pass@address:port
+    - AVALON_MONGO=mongodb://localhost:27017
+    - AVALON_DB=avalon
 
     # Dependencies
     - PYBLISH_BASE=absolute/path
     - PYBLISH_QML=absolute/path
     - AVALON_CORE=absolute/path
     - AVALON_LAUNCHER=absolute/path
+    - AVALON_EXAMPLES=absolute/path
 
     # Enable additional output
     - AVALON_DEBUG=True
@@ -148,6 +150,9 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--import", dest="import_", action="store_true")
+    parser.add_argument("--export", action="store_true")
+    parser.add_argument("--build", action="store_true")
     parser.add_argument("--load", action="store_true",
                         help="Load project at the current working directory")
     parser.add_argument("--save", action="store_true",
@@ -155,11 +160,30 @@ if __name__ == '__main__':
     parser.add_argument("--forward",
                         help="Run arbitrary command from setup environment")
 
-    kwargs = parser.parse_args()
+    kwargs, args = parser.parse_known_args()
 
     install()
 
-    if kwargs.load:
+    cd = os.path.dirname(os.path.abspath(__file__))
+    examplesdir = os.getenv("AVALON_EXAMPLES",
+                            os.path.join(cd, "git", "avalon-examples"))
+
+    if kwargs.import_:
+        fname = os.path.join(examplesdir, "import.py")
+        returncode = forward(
+            [sys.executable, "-u", fname] + args, silent=False)
+
+    elif kwargs.export:
+        fname = os.path.join(examplesdir, "export.py")
+        returncode = forward(
+            [sys.executable, "-u", fname] + args, silent=False)
+
+    elif kwargs.build:
+        fname = os.path.join(examplesdir, "build.py")
+        returncode = forward(
+            [sys.executable, "-u", fname] + args, silent=False)
+
+    elif kwargs.load:
         returncode = forward([
             sys.executable, "-u", "-m",
             "avalon.inventory", "--load"])
