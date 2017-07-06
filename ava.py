@@ -115,7 +115,7 @@ def install():
         sys.exit(1)
 
 
-def forward(args, silent=False):
+def forward(args, silent=False, cwd=None):
     """Pass `args` to the Avalon CLI, within the Avalon Setup environment
 
     Arguments:
@@ -125,13 +125,14 @@ def forward(args, silent=False):
     """
 
     if AVALON_DEBUG:
-        print("avalon.py: Forwarding %s.." % " ".join(args))
+        print("ava.py: Forwarding '%s'.." % " ".join(args))
 
     popen = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True
+        universal_newlines=True,
+        cwd=cwd
     )
 
     # Blocks until finished
@@ -140,10 +141,23 @@ def forward(args, silent=False):
             sys.stdout.write(line)
 
     if AVALON_DEBUG:
-        print("avalon.py: Finishing up..")
+        print("ava.py: Finishing up..")
 
     popen.wait()
     return popen.returncode
+
+
+def update(cd):
+    """Update Avalon to the latest version"""
+
+    for args in (["git", "pull"],
+                 ["git", "submodule", "init"],
+                 ["git", "submodule", "update", "--recusrive"]):
+        returncode = forward(args, silent=True, cwd=cd)
+        if returncode != 0:
+            sys.stderr.write("Could not update, try running "
+                             "it again with AVALON_DEBUG=True\n")
+            return returncode
 
 
 if __name__ == '__main__':
@@ -156,6 +170,8 @@ if __name__ == '__main__':
                         help="Export a project from the database")
     parser.add_argument("--build", action="store_true",
                         help="Build one of the bundled example projects")
+    parser.add_argument("--update", action="store_true",
+                        help="Update Avalon Setup to the latest version")
     parser.add_argument("--init", action="store_true",
                         help="Establish a new project in the "
                              "current working directory")
@@ -203,6 +219,9 @@ if __name__ == '__main__':
         returncode = forward([
             sys.executable, "-u", "-m",
             "avalon.inventory", "--save"])
+
+    elif kwargs.update:
+        returncode = update(cd)
 
     elif kwargs.forward:
         returncode = forward(kwargs.forward.split())
