@@ -150,9 +150,15 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
-    parser.add_argument("--import", dest="import_", action="store_true")
-    parser.add_argument("--export", action="store_true")
-    parser.add_argument("--build", action="store_true")
+    parser.add_argument("--import", dest="import_", action="store_true",
+                        help="Import an example project into the database")
+    parser.add_argument("--export", action="store_true",
+                        help="Export a project from the database")
+    parser.add_argument("--build", action="store_true",
+                        help="Build one of the bundled example projects")
+    parser.add_argument("--init", action="store_true",
+                        help="Establish a new project in the "
+                             "current working directory")
     parser.add_argument("--load", action="store_true",
                         help="Load project at the current working directory")
     parser.add_argument("--save", action="store_true",
@@ -182,6 +188,11 @@ if __name__ == '__main__':
         fname = os.path.join(examplesdir, "build.py")
         returncode = forward(
             [sys.executable, "-u", fname] + args, silent=False)
+
+    elif kwargs.init:
+        returncode = forward([
+            sys.executable, "-u", "-m",
+            "avalon.inventory", "--init"])
 
     elif kwargs.load:
         returncode = forward([
