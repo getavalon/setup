@@ -1,7 +1,7 @@
 @echo off
 
 set __app__="Mayapy 2016"
-set __exe__="c:\program files\autodesk\maya2016\bin\mayapy.exe"
+set __exe__="C:\Program Files\Autodesk\Maya2016\bin\mayapy.exe"
 if not exist %__exe__% goto :missing_app
 
 call %__exe__% %*
