@@ -115,7 +115,7 @@ def install():
         sys.exit(1)
 
 
-def forward(args, silent=True):
+def forward(args, silent=False):
     """Pass `args` to the Avalon CLI, within the Avalon Setup environment
 
     Arguments:
@@ -177,17 +177,17 @@ if __name__ == '__main__':
     if kwargs.import_:
         fname = os.path.join(examplesdir, "import.py")
         returncode = forward(
-            [sys.executable, "-u", fname] + args, silent=False)
+            [sys.executable, "-u", fname] + args)
 
     elif kwargs.export:
         fname = os.path.join(examplesdir, "export.py")
         returncode = forward(
-            [sys.executable, "-u", fname] + args, silent=False)
+            [sys.executable, "-u", fname] + args)
 
     elif kwargs.build:
         fname = os.path.join(examplesdir, "build.py")
         returncode = forward(
-            [sys.executable, "-u", fname] + args, silent=False)
+            [sys.executable, "-u", fname] + args)
 
     elif kwargs.init:
         returncode = forward([
@@ -205,7 +205,7 @@ if __name__ == '__main__':
             "avalon.inventory", "--save"])
 
     elif kwargs.forward:
-        returncode = forward(kwargs.forward.split(), silent=False)
+        returncode = forward(kwargs.forward.split())
 
     else:
         root = os.environ["AVALON_PROJECTS"]
