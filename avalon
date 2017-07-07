@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
-python -u avalon.py $*
+pushd `dirname $0` > /dev/null
+DIRNAME=`pwd -P`
+popd > /dev/null
+python -u $DIRNAME/avalon.py $*
