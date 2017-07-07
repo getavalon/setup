@@ -159,17 +159,27 @@ def forward(args, silent=False, cwd=None):
 def update(cd):
     """Update Avalon to the latest version"""
 
-    for args in (["git", "pull", "origin", "master"],
+    script = (
+        # Discard any ad-hoc changes
+        ("Resetting..", ["git", "reset", "--hard"]),
+        ("Downloading..", ["git", "pull", "origin", "master"]),
 
-                 # In case there are new submodules since last pull
-                 ["git", "submodule", "init"],
+        # In case there are new submodules since last pull
+        ("Looking for submodules..", ["git", "submodule", "init"]),
 
-                 ["git", "submodule", "update", "--recursive"]):
+        ("Updating submodules..",
+            ["git", "submodule", "update", "--recursive"]),
+    )
+
+    for message, args in script:
+        print(message)
         returncode = forward(args, silent=True, cwd=cd)
         if returncode != 0:
             sys.stderr.write("Could not update, try running "
                              "it again with AVALON_DEBUG=True\n")
             return returncode
+
+    print("All done")
 
 
 def main():
