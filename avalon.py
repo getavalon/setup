@@ -41,6 +41,15 @@ import sys
 import platform
 import subprocess
 
+# Having avalon.py in the current working directory
+# exposes it to Python's import mechanism which conflicts
+# with the actual avalon Python package.
+if os.path.basename(__file__) in os.listdir():
+    sys.stderr.write("Error: Please change your current "
+                     "working directory\n%s\n" % os.getcwd())
+    sys.exit(1)
+
+
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 AVALON_DEBUG = bool(os.getenv("AVALON_DEBUG"))
 
@@ -150,9 +159,12 @@ def forward(args, silent=False, cwd=None):
 def update(cd):
     """Update Avalon to the latest version"""
 
-    for args in (["git", "pull"],
+    for args in (["git", "pull", "origin", "master"],
+
+                 # In case there are new submodules since last pull
                  ["git", "submodule", "init"],
-                 ["git", "submodule", "update", "--recusrive"]):
+
+                 ["git", "submodule", "update", "--recursive"]):
         returncode = forward(args, silent=True, cwd=cd)
         if returncode != 0:
             sys.stderr.write("Could not update, try running "
@@ -160,7 +172,7 @@ def update(cd):
             return returncode
 
 
-if __name__ == '__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
@@ -233,3 +245,7 @@ if __name__ == '__main__':
             "launcher", "--root", root])
 
     sys.exit(returncode)
+
+
+if __name__ == '__main__':
+    main()
