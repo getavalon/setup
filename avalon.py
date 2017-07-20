@@ -10,7 +10,7 @@ dependencies:
     - PyQt5
 
 example:
-    $ python ava.py --help
+    $ python avalon.py --help
 
 overrides:
     avalon.py takes into account dependencies bundled
@@ -38,7 +38,10 @@ overrides:
 
 import os
 import sys
+import shutil
+import tempfile
 import platform
+import contextlib
 import subprocess
 
 # Having avalon.py in the current working directory
@@ -53,8 +56,32 @@ if os.path.basename(__file__) in os.listdir(os.getcwd()):
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 AVALON_DEBUG = bool(os.getenv("AVALON_DEBUG"))
 
+init = """\
+from avalon import api, shell
+api.install(shell)
+"""
 
+
+@contextlib.contextmanager
 def install():
+    tempdir = tempfile.mkdtemp()
+    usercustomize = os.path.join(tempdir, "usercustomize.py")
+
+    with open(usercustomize, "w") as f:
+        f.write(init)
+
+    os.environ["PYTHONVERBOSE"] = "True"
+    os.environ["PYTHONPATH"] = os.pathsep.join([
+        tempdir, os.environ["PYTHONPATH"]
+    ])
+
+    try:
+        yield
+    finally:
+        shutil.rmtree(tempdir)
+
+
+def _install(root=None):
     missing_dependencies = list()
     for dependency in ("PyQt5",):
         try:
@@ -79,7 +106,12 @@ def install():
             os.environ[dependency] = os.path.join(REPO_DIR, "git", name)
 
     os.environ["PATH"] = os.pathsep.join([
+        # Expose "avalon", overriding existing
+        os.path.join(REPO_DIR),
+
         os.environ["PATH"],
+
+        # Add generic binaries
         os.path.join(REPO_DIR, "bin"),
 
         # Add OS-level dependencies
@@ -94,6 +126,7 @@ def install():
 
             # Default config and dependency
             os.getenv("PYBLISH_BASE"),
+            os.getenv("PYBLISH_QML"),
 
             # The Launcher itself
             os.getenv("AVALON_LAUNCHER"),
@@ -107,11 +140,14 @@ def install():
         os.environ["PYTHONPATH"] += os.pathsep + os.path.join(
             REPO_DIR, "git", "mindbender-config")
 
-    try:
-        root = os.environ["AVALON_PROJECTS"]
-    except KeyError:
-        root = os.path.join(os.environ["AVALON_EXAMPLES"], "projects")
+    if root is not None:
         os.environ["AVALON_PROJECTS"] = root
+    else:
+        try:
+            root = os.environ["AVALON_PROJECTS"]
+        except KeyError:
+            root = os.path.join(os.environ["AVALON_EXAMPLES"], "projects")
+            os.environ["AVALON_PROJECTS"] = root
 
     try:
         config = os.environ["AVALON_CONFIG"]
@@ -134,23 +170,28 @@ def forward(args, silent=False, cwd=None):
     """
 
     if AVALON_DEBUG:
-        print("ava.py: Forwarding '%s'.." % " ".join(args))
+        print("avalon.py: Forwarding '%s'.." % " ".join(args))
 
     popen = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True,
+        bufsize=1,
         cwd=cwd
     )
 
     # Blocks until finished
-    for line in iter(popen.stdout.readline, ""):
-        if not silent or AVALON_DEBUG:
-            sys.stdout.write(line)
+    while True:
+        line = popen.stdout.readline()
+        if line != '':
+            if not silent or AVALON_DEBUG:
+                sys.stdout.write(line)
+        else:
+            break
 
     if AVALON_DEBUG:
-        print("ava.py: Finishing up..")
+        print("avalon.py: Finishing up..")
 
     popen.wait()
     return popen.returncode
@@ -186,6 +227,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--root", help="Projects directory")
     parser.add_argument("--import", dest="import_", action="store_true",
                         help="Import an example project into the database")
     parser.add_argument("--export", action="store_true",
@@ -203,10 +245,13 @@ def main():
                         help="Save project from the current working directory")
     parser.add_argument("--forward",
                         help="Run arbitrary command from setup environment")
+    parser.add_argument("--publish", action="store_true",
+                        help="Publish from current working directory, "
+                             "or supplied --root")
 
     kwargs, args = parser.parse_known_args()
 
-    install()
+    _install(root=kwargs.root)
 
     cd = os.path.dirname(os.path.abspath(__file__))
     examplesdir = os.getenv("AVALON_EXAMPLES",
@@ -248,11 +293,19 @@ def main():
     elif kwargs.forward:
         returncode = forward(kwargs.forward.split())
 
+    elif kwargs.publish:
+        os.environ["PYBLISH_HOSTS"] = "shell"
+
+        with install():
+            returncode = forward([
+                sys.executable, "-u", "-m", "pyblish", "gui"
+            ] + args, silent=True)
+
     else:
         root = os.environ["AVALON_PROJECTS"]
         returncode = forward([
-            sys.executable, "-u", "-m",
-            "launcher", "--root", root])
+            sys.executable, "-u", "-m", "launcher", "--root", root
+        ] + args)
 
     sys.exit(returncode)
 
