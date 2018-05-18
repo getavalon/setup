@@ -227,6 +227,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument(
+        "--ls", help="List available projects.", action="store_true"
+    )
     parser.add_argument("--root", help="Projects directory")
     parser.add_argument("--import", dest="import_", action="store_true",
                         help="Import an example project into the database")
@@ -300,6 +303,19 @@ def main():
             returncode = forward([
                 sys.executable, "-u", "-m", "pyblish", "gui"
             ] + args, silent=True)
+
+    elif kwargs.ls:
+        print("Projects in database:")
+        returncode = subprocess.call(
+            [
+                sys.executable,
+                "-u",
+                "-c",
+                "from avalon import io;"
+                "io.install();"
+                "print([project[\"name\"] for project in io.projects()])"
+            ]
+        )
 
     else:
         root = os.environ["AVALON_PROJECTS"]
