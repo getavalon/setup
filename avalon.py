@@ -242,7 +242,7 @@ def main():
     parser.add_argument("--init", action="store_true",
                         help="Establish a new project in the "
                              "current working directory")
-    parser.add_argument("--load", action="store_true",
+    parser.add_argument("--load", nargs="?", default=False,
                         help="Load project at the current working directory")
     parser.add_argument("--save", action="store_true",
                         help="Save project from the current working directory")
@@ -281,9 +281,21 @@ def main():
             "avalon.inventory", "--init"])
 
     elif kwargs.load:
-        returncode = forward([
-            sys.executable, "-u", "-m",
-            "avalon.inventory", "--load"])
+        returncode = forward(
+            [
+                sys.executable,
+                "-u",
+                "-m",
+                "avalon.inventory",
+                "--load",
+                kwargs.load
+            ]
+        )
+
+    elif kwargs.load is None:
+        returncode = forward(
+            [sys.executable, "-u", "-m", "avalon.inventory", "--load"]
+        )
 
     elif kwargs.save:
         returncode = forward([
