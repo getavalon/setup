@@ -227,6 +227,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument(
+        "--ls", help="List available projects.", action="store_true"
+    )
     parser.add_argument("--root", help="Projects directory")
     parser.add_argument("--import", dest="import_", action="store_true",
                         help="Import an example project into the database")
@@ -239,7 +242,7 @@ def main():
     parser.add_argument("--init", action="store_true",
                         help="Establish a new project in the "
                              "current working directory")
-    parser.add_argument("--load", action="store_true",
+    parser.add_argument("--load", nargs="?", default=False,
                         help="Load project at the current working directory")
     parser.add_argument("--save", action="store_true",
                         help="Save project from the current working directory")
@@ -278,9 +281,21 @@ def main():
             "avalon.inventory", "--init"])
 
     elif kwargs.load:
-        returncode = forward([
-            sys.executable, "-u", "-m",
-            "avalon.inventory", "--load"])
+        returncode = forward(
+            [
+                sys.executable,
+                "-u",
+                "-m",
+                "avalon.inventory",
+                "--load",
+                kwargs.load
+            ]
+        )
+
+    elif kwargs.load is None:
+        returncode = forward(
+            [sys.executable, "-u", "-m", "avalon.inventory", "--load"]
+        )
 
     elif kwargs.save:
         returncode = forward([
@@ -300,6 +315,19 @@ def main():
             returncode = forward([
                 sys.executable, "-u", "-m", "pyblish", "gui"
             ] + args, silent=True)
+
+    elif kwargs.ls:
+        print("Projects in database:")
+        returncode = subprocess.call(
+            [
+                sys.executable,
+                "-u",
+                "-c",
+                "from avalon import io;"
+                "io.install();"
+                "print([project[\"name\"] for project in io.projects()])"
+            ]
+        )
 
     else:
         root = os.environ["AVALON_PROJECTS"]
