@@ -13,6 +13,6 @@
 [submodule "git/pyblish-qml"]
 	path = git/pyblish-qml
 	url = https://github.com/pyblish/pyblish-qml.git
-[submodule "git/mindbender-config"]
-	path = git/mindbender-config
-	url = https://github.com/mindbender-studio/config.git
+[submodule "git/avalon-config"]
+	path = git/avalon-config
+	url = https://github.com/getavalon/config
