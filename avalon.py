@@ -138,7 +138,7 @@ def _install(root=None):
     if "AVALON_CONFIG" not in os.environ:
         os.environ["AVALON_CONFIG"] = "polly"
         os.environ["PYTHONPATH"] += os.pathsep + os.path.join(
-            REPO_DIR, "git", "mindbender-config")
+            REPO_DIR, "git", "avalon-config")
 
     if root is not None:
         os.environ["AVALON_PROJECTS"] = root
