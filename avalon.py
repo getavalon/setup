@@ -134,12 +134,6 @@ def _install(root=None):
         ]
     )
 
-    # Override default configuration by setting this value.
-    if "AVALON_CONFIG" not in os.environ:
-        os.environ["AVALON_CONFIG"] = "polly"
-        os.environ["PYTHONPATH"] += os.pathsep + os.path.join(
-            REPO_DIR, "git", "avalon-config")
-
     if root is not None:
         os.environ["AVALON_PROJECTS"] = root
     else:
@@ -149,13 +143,14 @@ def _install(root=None):
             root = os.path.join(os.environ["AVALON_EXAMPLES"], "projects")
             os.environ["AVALON_PROJECTS"] = root
 
-    try:
-        config = os.environ["AVALON_CONFIG"]
-    except KeyError:
-        config = "polly"
-        os.environ["AVALON_CONFIG"] = config
+    # Setting default config.
+    # You can override by setting AVALON_CONFIG to your config module.
+    if not os.environ.get("AVALON_CONFIG", None):
+        os.environ["AVALON_CONFIG"] = "ava"
+        os.environ["PYTHONPATH"] += os.pathsep + os.path.join(
+            REPO_DIR, "git", "avalon-config")
 
-    if subprocess.call([sys.executable, "-c", "import %s" % config]) != 0:
+    if subprocess.call([sys.executable, "-c", "import %s" % os.environ["AVALON_CONFIG"]]) != 0:
         print("ERROR: config not found, check your PYTHONPATH.")
         sys.exit(1)
 
